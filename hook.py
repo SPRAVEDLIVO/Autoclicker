@@ -2,6 +2,7 @@ from pynput import mouse
 import pynput
 from pynput.mouse import Listener
 import threading
+import pyautogui
 import numpy as np
 import tkinter as tk
 from tkinter import simpledialog
@@ -9,21 +10,23 @@ import time
 pressedList = []
 root = tk.Tk()
 def makelisten():
-    def on_click(x, y, button, pressed):
+    def mousehook(x, y, button, pressed):
         if pressed:
             pressedList.append([x,y])
         if not pressed:
             return False
-    with pynput.mouse.Listener(on_click=on_click) as listener:
+    with pynput.mouse.Listener(on_click=mousehook) as listener:
         listener.join()
 def keyhook():
-    def on_press(key):
+    def keyboardhook(key):
         pressedList.append(key)
         return False
-    with pynput.keyboard.Listener(on_press=on_press) as listener:
+    with pynput.keyboard.Listener(on_press=keyboardhook) as listener:
         listener.join()
 def record():
-    n = simpledialog.askfloat("Ввод", "Количество секунд", parent=root,minvalue=0)
+    try:
+        n = simpledialog.askfloat("Ввод", "Количество секунд", parent=root,minvalue=0)
+    except: pass
     tm = time.time()
     tmvectors = []
     def on_click(x, y, button, pressed):
@@ -62,7 +65,10 @@ def record():
     def killall():
         t1._stop()
         t2._stop()
-    threading.Timer(n, killall).start()
+        t3._stop()
+        print('Запись остановлена')
+    t3 = threading.Timer(n, killall)
+    t3.start()
 def repeat():
     try:
         n = simpledialog.askinteger("Ввод", "Количество повторений", parent=root,minvalue=0) if len(pressedList) != 0 else 0
@@ -88,11 +94,15 @@ def clear():
         print('Я не могу отчистить пустой список')
 def read():
     global pressedList
-    n = simpledialog.askstring(title='Конфигурации', prompt='Загрузить конфигрузацию')
-    pressedList = np.load('presets/'+n+'.npy', allow_pickle=True).tolist()
+    try:
+        n = simpledialog.askstring(title='Конфигурации', prompt='Загрузить конфигрузацию')
+        pressedList = np.load('presets/'+n+'.npy', allow_pickle=True).tolist()
+    except: pass
 def save():
-    n = simpledialog.askstring(title='Конфигурации', prompt='Сохранить конфигрузацию')
-    np.save('presets/'+n,np.array(pressedList))
+    try:
+        n = simpledialog.askstring(title='Конфигурации', prompt='Сохранить конфигрузацию')
+        np.save('presets/'+n,np.array(pressedList))
+    except: pass
 display= lambda: print(pressedList)
 tk.Button(text='Click', command = makelisten).pack()
 tk.Button(text='Key', command = keyhook).pack()
