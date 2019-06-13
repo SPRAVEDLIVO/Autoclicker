@@ -1,7 +1,6 @@
 from pynput import mouse
 import pynput
 from pynput.mouse import Listener
-import pyautogui
 import threading
 import numpy as np
 import tkinter as tk
